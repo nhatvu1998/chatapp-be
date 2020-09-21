@@ -1,0 +1,171 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserEntity implements DefaultEntity {
+  _id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  username: String!
+  fullname: String!
+  password: String!
+  email: String!
+  isOnline: Boolean!
+}
+
+interface DefaultEntity {
+  _id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type AccessToken {
+  token: String!
+}
+
+type FileType {
+  key: String
+  url: String
+  name: String
+}
+
+type MessageEntity implements DefaultEntity {
+  _id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  conversationId: String!
+  senderId: String!
+  type: MessageType!
+  message: String!
+  files: FileType
+}
+
+"""The message type"""
+enum MessageType {
+  text
+  image
+  audio
+  video
+  file
+}
+
+type ParticipantEntity implements DefaultEntity {
+  _id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  conversationId: String!
+  userId: [String!]!
+  type: ParticipantType!
+}
+
+"""The participant type"""
+enum ParticipantType {
+  Single
+  Group
+}
+
+type ConversationEntity implements DefaultEntity {
+  _id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  title: String!
+  creatorId: String!
+  firstMessage: MessageEntity
+  senderId: String
+  type: Float!
+}
+
+type Query {
+  getUser(id: String!): UserEntity!
+  getUsers: [UserEntity!]!
+  getProfile: UserEntity!
+  findAllMessage(messageQuery: MessageQuery!): [MessageEntity!]!
+  getPhotos(messageQuery: MessageQuery!): [MessageEntity!]!
+  getManyConversation(userId: String!): [ConversationEntity!]!
+}
+
+input MessageQuery {
+  page: Float = 1
+  limit: Float = 20
+  conversationId: String!
+}
+
+type Mutation {
+  register(userData: RegisterInput!): UserEntity!
+  login(userData: LoginInput!): AccessToken!
+  logout(id: String!): AccessToken!
+  updateUser(userData: UpdateUserInput!): UserEntity!
+  newMessage(messageInput: MessageInput!): MessageEntity!
+  removeMessage(messageId: String!): Boolean!
+  uploadFile(fileInfo: FileInfo!, file: Upload!): MessageEntity!
+  startCall(peerId: String!, userId: String!, data: JSON!): Boolean!
+  acceptCall(data: JSON!): Boolean!
+  createConversation(conversationInput: ConversationInput!): ConversationEntity!
+  addParticipant(participantInput: ParticipantInput!): ParticipantEntity!
+}
+
+input RegisterInput {
+  username: String!
+  password: String!
+  passwordCheck: String!
+  fullname: String!
+  email: String!
+}
+
+input LoginInput {
+  username: String!
+  password: String!
+}
+
+input UpdateUserInput {
+  _id: String!
+  username: String
+  fullname: String
+  email: String
+  isOnline: Boolean
+}
+
+input MessageInput {
+  conversationId: String!
+  senderId: String!
+  type: Float!
+  message: String!
+}
+
+input FileInfo {
+  conversationId: String!
+  senderId: String!
+  type: Float!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+input ConversationInput {
+  title: String!
+  creatorId: String!
+  participantMembers: [String!]!
+  type: ParticipantType!
+}
+
+input ParticipantInput {
+  conversationId: String!
+  userId: [String!]!
+  type: ParticipantType!
+}
+
+type Subscription {
+  messageAdded: MessageEntity!
+  startCallUser: JSON!
+  acceptCallUser: JSON!
+}
