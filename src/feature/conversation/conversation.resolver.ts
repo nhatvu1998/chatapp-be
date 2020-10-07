@@ -15,6 +15,11 @@ export class ConversationResolver {
 
   @Mutation(returns => ConversationEntity)
   async createConversation(@Args('conversationInput') conversationInput: ConversationInput) {
-    return this.conversationService.createConversation(conversationInput.title, conversationInput.creatorId, conversationInput.participantMembers, conversationInput.type);
+    return this.conversationService.createConversation(conversationInput.creatorId, conversationInput.participantMembers, conversationInput.type, conversationInput.title,);
+  }
+
+  @Mutation(returns => Boolean)
+  async deleteConversation(@Args('conversationId') conversationId: string) {
+    return this.conversationService.deleteConversation(conversationId);
   }
 }

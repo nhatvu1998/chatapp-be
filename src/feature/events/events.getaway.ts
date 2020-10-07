@@ -9,6 +9,7 @@ import {
 import { Client, Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
+import { ConversationService } from '../conversation/conversation.service';
 
 const rooms = {};
 
@@ -16,6 +17,7 @@ const rooms = {};
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly userService: UserService,
+    private readonly conversationService: ConversationService,
   ) {}
 
   @WebSocketServer() server: Server;
@@ -23,24 +25,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(socket) {
     const user = await this.userService.decodeToken(socket.handshake.query.token)
+    const conversations = (await this.conversationService.getManyConversation(user.userId));
+    conversations.map(conversation => {
+      socket.join(conversation._id);
+    })
     this.logger.log(`Client connected: ${socket.id}`);
   }
 
-  handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: ${client.id}`);
+  async handleDisconnect(socket) {
+    // const user = await this.userService.decodeToken(socket.handshake.query.token)
+    // const conversations = await this.conversationService.getManyConversation(user.userId);
+    // conversations.map(conversation => {
+    //   socket.join(conversation._id);
+    // })
+    this.logger.log(`Client disconnected: ${socket.id}`);
   }
 
-  // @SubscribeMessage('call signal')
-  // callSignal(@MessageBody() roomId: any, @ConnectedSocket() client: Socket): Promise<unknown> {
-  //   const otherUser = rooms[roomId].find(id => id !== client.id);
-  //   if (otherUser) {
-  //     client.emit('other user', otherUser);
-  //     client.to(otherUser).emit('user joined', client.id);
-  //   }
-  // }
-
   @SubscribeMessage('join room')
-  findAll(client: Socket, roomId: any): Promise<unknown> {
+  async findAll(client: Socket, roomId: any): Promise<unknown> {
     if (rooms[roomId]) {
       rooms[roomId].push(client.id);
     } else {
@@ -51,9 +53,15 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('other user', otherUser);
       client.to(otherUser).emit('user joined', client.id);
     }
-    console.log(roomId);
-    client.emit('roomId', roomId);
     return roomId;
+  }
+
+  @SubscribeMessage('call-signal')
+  async callSignal(@MessageBody() payload: any, @ConnectedSocket() client: Socket): Promise<unknown> {
+    console.log(payload);
+    const user = await this.userService.decodeToken(client.handshake.query.token)
+    client.to(payload.roomId).emit('peerId', {peerId: payload.peerId, userId: user.userId})
+    return payload;
   }
 
   @SubscribeMessage('offer')
@@ -73,5 +81,4 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.to(incoming.target).emit('ice-candidate', incoming.candidate)
     return incoming;
   }
-
 }

@@ -28,7 +28,7 @@ export class ConversationEntity extends DefaultEntity {
   @Column()
   senderId: string;
 
-  @Field()
+  @Field(type => ParticipantType)
   @Column()
   type: ParticipantType;
 

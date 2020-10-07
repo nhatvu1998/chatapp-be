@@ -3,9 +3,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MessageEntity, MessageType } from './entity/message.entity';
 import { MongoRepository } from 'typeorm';
 import { ConversationEntity } from '../conversation/entity/conversation.entity';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { v4 as uuid } from 'uuid';
-import { S3 } from 'aws-sdk';
+import { Storage } from '@google-cloud/storage';
+import { loadConfigurationFromPath } from 'tslint/lib/configuration';
+import { loadResolversFromGlob } from 'type-graphql/dist/helpers/loadResolversFromGlob';
+import { EventsGateway } from '../events/events.getaway';
+const serviceKey = join(__dirname, '../../../keys.json')
+
+const storage = new Storage({
+  keyFilename: serviceKey,
+  projectId: 'smooth-helper-288812',
+})
+
+export const fileBucket = storage.bucket('chatapp-vu')
 
 @Injectable()
 export class MessageService {
@@ -14,12 +25,14 @@ export class MessageService {
     private readonly messageRepo: MongoRepository<MessageEntity>,
     @InjectRepository(ConversationEntity)
     private readonly convesationRepo: MongoRepository<ConversationEntity>,
+    private readonly eventGateway: EventsGateway,
   ) {}
 
-  async findAllMessageByConversationId(conversationId: string, page= 1, limit= 50) {
+  async findMessage(conversationId: string, page= 1, limit= 20) {
     return this.messageRepo.find({
       where: {
         conversationId,
+        isDeleted: { $nin: [ true ] },
       },
       order: {createdAt: -1},
       take: limit,
@@ -72,36 +85,45 @@ export class MessageService {
   }
 
   async uploadFile(file: any, conversationId, senderId, type, message = '') {
-    let uploadResult;
-    const s3 = this.getS3();
     const { createReadStream, filename, mimetype, encoding } = await file;
-    if (file) {
-      uploadResult = await s3.upload({
-        Bucket: 'chatapp-vu',
-        Key: `${uuid()}${extname(filename)}`,
-        ContentType: mimetype,
-        Body: createReadStream(),
-        ACL: 'public-read',
-      }).promise();
+    let filetype;
+    switch(mimetype.split('/')[0]) {
+      case 'image':
+        filetype = 1
+        break;
+      case 'audio':
+        filetype = 2
+        break;
+      case 'video':
+        filetype = 3
+        break;
+      case 'application':
+        filetype = 4
+        break;
+      default:
+        break
     }
-    console.log(uploadResult);
-    const fileInfo = {
-      key: uploadResult.key,
-      name: filename,
-      url: uploadResult.Location,
-    };
-    if (mimetype.includes('mp4')) {
-      type = 3;
-    }
-    const newMessage = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type, message, files: fileInfo}))
-    console.log(newMessage);
-    return newMessage;
-  }
-  getS3() {
-    return new S3({
-      accessKeyId: 'AKIAIKKJ4C4SRTCL47EA',
-      secretAccessKey: '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',
-    });
+    console.log(filetype);
+      await new Promise(res =>
+          createReadStream()
+            .pipe(
+              fileBucket.file(filename).createWriteStream({
+                resumable: false,
+                gzip: true
+              })
+            )
+            .on('finish', async () => {
+              const uploadResult = (await fileBucket.file(filename).getMetadata())[0];
+              const fileInfo = {
+                key: uploadResult.id,
+                name: uploadResult.name,
+                url: `https://storage.googleapis.com/${uploadResult.bucket}/${uploadResult.name}`,
+              };
+              const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type, message, files: fileInfo}))
+              this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
+            })
+            .on('error', err => console.log(err))
+      )
   }
 
   async getPhotos(conversationId: string, page= 1, limit= 20) {
@@ -114,5 +136,27 @@ export class MessageService {
       take: limit,
       skip: limit * (page - 1),
     });
+  }
+
+  async searchMessage(conversationId: string, searchText: string) {
+    return this.messageRepo.find({
+      where: {
+        conversationId,
+        message: { $regex: searchText },
+      },
+      order: {createdAt: -1},
+    });
+  }
+
+  async deleteMessage(messageId:string) {
+    await this.messageRepo.findOneAndUpdate(
+      { _id: messageId },
+      {
+        $set: {
+          'isDeleted': true
+        }
+      }
+    )
+    return true;
   }
 }

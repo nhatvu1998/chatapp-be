@@ -1,5 +1,9 @@
 import { IsEmail, IsNumber, IsOptional, IsString, Length, Matches } from 'class-validator';
 import { InputType, Field } from '@nestjs/graphql';
+import { GraphQLUpload } from 'apollo-server-express';
+import { type } from 'os';
+import { FileUpload } from '../../message/message.resolver';
+import { UserGender } from '../entity/user.entity';
 
 @InputType()
 export class UpdateUserInput {
@@ -19,8 +23,15 @@ export class UpdateUserInput {
 
   @Field({nullable: true})
   @IsOptional()
-  @IsEmail()
-  email: string;
+  phone: string;
+
+  @Field(() => Number,{nullable: true})
+  @IsOptional()
+  gender: UserGender;
+
+  @Field(() => GraphQLUpload!,{nullable: true})
+  @IsOptional()
+  avatarFile: FileUpload;
 
   @Field({nullable: true})
   @IsOptional()

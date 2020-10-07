@@ -4,7 +4,7 @@ import { ParticipantType } from '../../participant/entity/participant.entity';
 
 @InputType()
 export class ConversationInput {
-  @Field()
+  @Field({nullable: true})
   @IsString()
   title: string;
 
@@ -15,6 +15,6 @@ export class ConversationInput {
   @Field(type => [String])
   participantMembers: string[];
 
-  @Field(type => ParticipantType)
+  @Field()
   type: ParticipantType;
 }

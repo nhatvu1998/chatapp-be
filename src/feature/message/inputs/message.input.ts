@@ -41,6 +41,9 @@ export class MessageQuery extends PagingQuery {
   @Field()
   @IsString()
   conversationId: string;
+
+  @Field({ nullable: true })
+  searchText: string;
 }
 
 @InputType()

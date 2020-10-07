@@ -4,6 +4,16 @@ import { UserEntity } from './entity/user.entity';
 import { RegisterInput } from '../auth/inputs/register.input';
 import { UpdateUserInput } from './inputs/user.input';
 import { MessageEntity } from '../message/entity/message.entity';
+import { GraphQLUpload } from 'apollo-server-express';
+import { ReadStream } from 'fs-capacitor';
+
+export interface FileUpload {
+  filename: string;
+  mimetype: string;
+  encoding: string;
+  createReadStream(): ReadStream
+  ;
+}
 
 @Resolver(() => UserEntity)
 export class UsersResolver {
@@ -24,13 +34,14 @@ export class UsersResolver {
     return this.userService.findOne(user.userId);
   }
 
-  @Mutation(returns => UserEntity)
-  async updateUser(@Args('userData') userData: UpdateUserInput) {
-    return this.userService.updateUser(userData._id, {
+  @Mutation(returns => MessageEntity)
+  async updateUser(@Args({name: 'avatarFile', type: () => GraphQLUpload!}) avatarFile: FileUpload, @Args('userData') userData: UpdateUserInput) {
+    return await this.userService.updateUser(userData._id, {
       username: userData.username,
       fullname: userData.fullname,
-      email: userData.email,
+      phone: userData.phone,
+      gender: userData.gender,
       isOnline: userData.isOnline,
-    });
+    }, avatarFile);
   }
 }

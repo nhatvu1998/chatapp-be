@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConversationEntity } from './entity/conversation.entity';
 import { MongoRepository } from 'typeorm';
+import _ from 'lodash';
 import { ParticipantEntity, ParticipantType } from '../participant/entity/participant.entity';
 
 @Injectable()
@@ -63,10 +64,30 @@ export class ConversationService {
   //   return this.participantRepo.find({conversationId});
   // }
 
-  async createConversation(title: string, creatorId: string, participantMembers: string[], type: ParticipantType) {
+  async createConversation(creatorId: string, participantMembers: string[], type: ParticipantType, title = '') {
+    if (type === ParticipantType.single) {
+      const conversationParticipant = await this.participantRepo.findOne({
+        where: {
+          userId: participantMembers
+        }
+      })
+      if (conversationParticipant) {
+        return this.conversationRepo.findOne({_id: conversationParticipant.conversationId});
+      }
+      console.log(conversationParticipant);
+      return '';
+    }
     const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId}));
     const participant = await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: participantMembers, type}));
     return conversation;
+  }
+
+  async deleteConversation(conversationId: string) {
+    const conversation = await this.conversationRepo.findOne({_id: conversationId});
+    if (!conversation) {
+      throw new BadRequestException('Conversation not found!');
+    }
+    return !!(await this.conversationRepo.remove(conversation));
   }
 
 }

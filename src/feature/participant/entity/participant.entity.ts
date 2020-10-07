@@ -4,8 +4,8 @@ import { DefaultEntity } from '../../../share/interface/default.entity';
 import { Expose, plainToClass } from 'class-transformer';
 
 export enum ParticipantType {
-  Single,
-  Group,
+  single,
+  group,
 }
 
 registerEnumType(ParticipantType, {

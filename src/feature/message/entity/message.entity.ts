@@ -1,5 +1,5 @@
-import { Entity, Column, ObjectIdColumn } from 'typeorm';
-import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Entity, Column, ObjectIdColumn, Index } from 'typeorm';
+import { Field, Float, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { DefaultEntity } from '../../../share/interface/default.entity';
 import { Expose, plainToClass } from 'class-transformer';
 
@@ -47,6 +47,7 @@ export class SignalDataResponseReceiver {
 
 @ObjectType({implements: DefaultEntity })
 @Entity('message')
+@Index('text', ['message'], { fulltext: true })
 export class MessageEntity extends DefaultEntity {
   @Field()
   @Expose()
@@ -58,7 +59,7 @@ export class MessageEntity extends DefaultEntity {
   @Column()
   senderId: string;
 
-  @Field(type => MessageType)
+  @Field(type => Float)
   @Expose()
   @Column()
   type: MessageType;
@@ -72,6 +73,11 @@ export class MessageEntity extends DefaultEntity {
   @Expose()
   @Column({default: []})
   files: FileType;
+
+  @Field({nullable: true})
+  @Expose()
+  @Column()
+  isDeleted: boolean;
 
   constructor(user: Partial<MessageEntity>) {
     super();
