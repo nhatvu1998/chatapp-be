@@ -26,7 +26,6 @@ export class AuthService {
 
     const token = this.jwtService.sign({
       userId: user._id,
-      // role: user.role,
     });
     await this.userRepo.updateOne(
       {_id: user._id},
@@ -41,12 +40,12 @@ export class AuthService {
   async logout(id: string): Promise<any> {
     const user = await this.userService.findOne(id);
     if (!user) throw new UnauthorizedException('User not found!');
-    return this.userRepo.updateOne(
+    return !!(await this.userRepo.updateOne(
       {_id: id},
       {
         $set: {
           isOnline: false,
         },
-      });
+      }));
   }
 }

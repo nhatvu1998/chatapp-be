@@ -11,9 +11,10 @@ import { ParticipantService } from '../participant/participant.service';
 import { ParticipantEntity } from '../participant/entity/participant.entity';
 import { EventsGateway } from '../events/events.getaway';
 import { EventsModule } from '../events/events.module';
+import { RoomEntity } from '../conversation/entity/room.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MessageEntity, ConversationEntity, ParticipantEntity]), EventsModule],
-  providers: [MessageResolver, MessageService, ConversationService, ParticipantService],
+  imports: [TypeOrmModule.forFeature([MessageEntity, ConversationEntity, ParticipantEntity, RoomEntity]), EventsModule, ConversationModule],
+  providers: [MessageResolver, MessageService, ParticipantService],
 })
 export class MessageModule {}

@@ -3,20 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MessageEntity, MessageType } from './entity/message.entity';
 import { MongoRepository } from 'typeorm';
 import { ConversationEntity } from '../conversation/entity/conversation.entity';
-import { extname, join } from 'path';
-import { v4 as uuid } from 'uuid';
+import { join } from 'path';
 import { Storage } from '@google-cloud/storage';
-import { loadConfigurationFromPath } from 'tslint/lib/configuration';
-import { loadResolversFromGlob } from 'type-graphql/dist/helpers/loadResolversFromGlob';
 import { EventsGateway } from '../events/events.getaway';
+import { ConfigService } from '../../share/module/config/config.service';
 const serviceKey = join(__dirname, '../../../keys.json')
-
-const storage = new Storage({
-  keyFilename: serviceKey,
-  projectId: 'smooth-helper-288812',
-})
-
-export const fileBucket = storage.bucket('chatapp-vu')
 
 @Injectable()
 export class MessageService {
@@ -26,7 +17,18 @@ export class MessageService {
     @InjectRepository(ConversationEntity)
     private readonly convesationRepo: MongoRepository<ConversationEntity>,
     private readonly eventGateway: EventsGateway,
+    private configService: ConfigService,
   ) {}
+
+  getFileBucket() {
+    const storage = new Storage({
+      keyFilename: serviceKey,
+      projectId: this.configService.get('GCLOUD_PROJECT_ID'),
+    })
+    const bucketName = this.configService.get('BUCKET_NAME');
+    const fileBucket = storage.bucket(bucketName)
+    return fileBucket
+  }
 
   async findMessage(conversationId: string, page= 1, limit= 20) {
     return this.messageRepo.find({
@@ -107,19 +109,19 @@ export class MessageService {
       await new Promise(res =>
           createReadStream()
             .pipe(
-              fileBucket.file(filename).createWriteStream({
+              this.getFileBucket().file(filename).createWriteStream({
                 resumable: false,
                 gzip: true
               })
             )
             .on('finish', async () => {
-              const uploadResult = (await fileBucket.file(filename).getMetadata())[0];
+              const uploadResult = (await this.getFileBucket().file(filename).getMetadata())[0];
               const fileInfo = {
                 key: uploadResult.id,
                 name: uploadResult.name,
                 url: `https://storage.googleapis.com/${uploadResult.bucket}/${uploadResult.name}`,
               };
-              const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type, message, files: fileInfo}))
+              const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type: filetype, message, files: fileInfo}))
               this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
             })
             .on('error', err => console.log(err))
@@ -130,7 +132,7 @@ export class MessageService {
     return this.messageRepo.find({
       where: {
         conversationId,
-        type: MessageType.image,
+        type: {$in: [MessageType.image, MessageType.video]},
       },
       order: {createdAt: -1},
       take: limit,

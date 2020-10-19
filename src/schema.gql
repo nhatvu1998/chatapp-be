@@ -74,6 +74,7 @@ type ConversationEntity implements DefaultEntity {
   creatorId: String!
   firstMessage: MessageEntity
   senderId: String
+  participants: [UserEntity!]!
   type: ParticipantType!
 }
 
@@ -97,7 +98,7 @@ input MessageQuery {
 type Mutation {
   register(userData: RegisterInput!): UserEntity!
   login(userData: LoginInput!): AccessToken!
-  logout(id: String!): AccessToken!
+  logout(id: String!): Boolean!
   updateUser(userData: UpdateUserInput!, avatarFile: Upload!): MessageEntity!
   newMessage(messageInput: MessageInput!): MessageEntity!
   removeMessage(messageId: String!): Boolean!

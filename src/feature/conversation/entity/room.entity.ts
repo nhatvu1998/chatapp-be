@@ -7,46 +7,31 @@ import { ParticipantType } from '../../participant/entity/participant.entity';
 import { UserEntity } from '../../user/entity/user.entity';
 
 @ObjectType({implements: DefaultEntity })
-@Entity('conversation')
-export class ConversationEntity extends DefaultEntity {
+@Entity('room')
+export class RoomEntity extends DefaultEntity {
   @Field()
   @Expose()
   @Column()
-  title: string;
-
-  @Field()
-  @Expose()
-  @Column()
-  creatorId: string;
-
-  @Field( type => MessageEntity, {nullable: true})
-  @Expose()
-  @Column()
-  firstMessage: MessageEntity;
+  peerId: string;
 
   @Field( {nullable: true})
   @Expose()
   @Column()
-  senderId: string;
+  creatorId: string;
 
-  @Field(type => [UserEntity])
+  @Field(type => [String])
   @Expose()
   @Column()
-  participants: UserEntity[];
+  participants: string[];
 
-  @Field(type => ParticipantType)
-  @Column()
-  type: ParticipantType;
-
-  constructor(conversation: Partial<ConversationEntity>) {
+  constructor(room: Partial<RoomEntity>) {
     super();
-    if (conversation) {
+    if (room) {
       Object.assign(
         this,
-        plainToClass(ConversationEntity, conversation, {
+        plainToClass(RoomEntity, room, {
           excludeExtraneousValues: true,
         }));
     }
   }
 }
-

@@ -11,8 +11,6 @@ import { ConversationService } from '../../../../feature/conversation/conversati
 export class GqlConfigService implements GqlOptionsFactory {
   constructor(
     private configService: ConfigService,
-    private userService: UserService,
-    private conversationService: ConversationService,
   ) {}
 
   createGqlOptions(): GqlModuleOptions {

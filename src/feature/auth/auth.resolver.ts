@@ -33,7 +33,7 @@ export class AuthResolver {
   }
 
   @Public()
-  @Mutation(() => AccessToken)
+  @Mutation(() => Boolean)
   async logout(@Args('id') id: string) {
     return this.authService.logout(id);
   }

@@ -10,6 +10,8 @@ import { Client, Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { ConversationService } from '../conversation/conversation.service';
+import { getMongoRepository } from 'typeorm';
+import { RoomEntity } from '../conversation/entity/room.entity';
 
 const rooms = {};
 
@@ -29,16 +31,16 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     conversations.map(conversation => {
       socket.join(conversation._id);
     })
-    this.logger.log(`Client connected: ${socket.id}`);
+    this.logger.log(`Client connected: ${user.userId}`);
   }
 
   async handleDisconnect(socket) {
-    // const user = await this.userService.decodeToken(socket.handshake.query.token)
-    // const conversations = await this.conversationService.getManyConversation(user.userId);
-    // conversations.map(conversation => {
-    //   socket.join(conversation._id);
-    // })
-    this.logger.log(`Client disconnected: ${socket.id}`);
+    const user = await this.userService.decodeToken(socket.handshake.query.token)
+    const conversations = await this.conversationService.getManyConversation(user.userId);
+    conversations.map(conversation => {
+      socket.leave(conversation._id);
+    })
+    this.logger.log(`Client disconnected: ${user.userId}`);
   }
 
   @SubscribeMessage('join room')
@@ -48,12 +50,25 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else {
       rooms[roomId] = [client.id];
     }
-    const otherUser = rooms[roomId].find(id => id !== client.id);
+    const otherUser = rooms[roomId].find((id) => id !== client.id);
     if (otherUser) {
       client.emit('other user', otherUser);
       client.to(otherUser).emit('user joined', client.id);
     }
     return roomId;
+    // let room = await this.conversationService.findRoomByPeerId(payload.peerId);
+    // const user = await this.userService.decodeToken(client.handshake.query.token)
+    // if (!room) {
+    //   room = await this.conversationService.createRoom(payload.peerId, payload.creatorId)
+    // }
+    // room.participants.push(user?._id);
+    // await getMongoRepository(RoomEntity).save(room);
+    // const otherUser = room.participants.find(id => id !== user?._id);
+    // if (otherUser) {
+    //   client.emit('other user', otherUser);
+    //   client.to(otherUser).emit('user joined', client.id);
+    // }
+    // return payload;
   }
 
   @SubscribeMessage('call-signal')

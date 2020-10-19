@@ -1,15 +1,18 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConversationEntity } from './entity/conversation.entity';
 import { MongoRepository } from 'typeorm';
 import _ from 'lodash';
 import { ParticipantEntity, ParticipantType } from '../participant/entity/participant.entity';
+import { RoomEntity } from './entity/room.entity';
 
 @Injectable()
 export class ConversationService {
   constructor(
     @InjectRepository(ConversationEntity)
     private readonly conversationRepo: MongoRepository<ConversationEntity>,
+    @InjectRepository(RoomEntity)
+    private readonly roomRepo: MongoRepository<RoomEntity>,
     @InjectRepository(ParticipantEntity)
     private readonly participantRepo: MongoRepository<ParticipantEntity>,
   ) {}
@@ -44,10 +47,19 @@ export class ConversationService {
         },
       },
       {
+        $lookup: {
+          from: 'user',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'participants',
+        },
+      },
+      {
         $project: {
           _id: '$conversation._id',
           title: '$conversation.title',
           updatedAt: '$conversation.updatedAt',
+          participants: '$participants',
           firstMessage: { $arrayElemAt: [ '$firstMessage', -1 ] },
           senderid: { $arrayElemAt: [ '$firstMessage.senderId', -1 ] },
           type: '$type',
@@ -88,6 +100,18 @@ export class ConversationService {
       throw new BadRequestException('Conversation not found!');
     }
     return !!(await this.conversationRepo.remove(conversation));
+  }
+
+  async createRoom(peerId: string, creatorId: string) {
+    return this.roomRepo.save(new RoomEntity({
+      peerId,
+      creatorId,
+      participants: [creatorId],
+    }))
+  }
+
+  async findRoomByPeerId(peerId: string) {
+    return this.roomRepo.findOneOrFail({ peerId });
   }
 
 }
