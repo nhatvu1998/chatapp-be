@@ -57,13 +57,7 @@ type ParticipantEntity implements DefaultEntity {
   updatedAt: DateTime!
   conversationId: String!
   userId: [String!]!
-  type: ParticipantType!
-}
-
-"""The participant type"""
-enum ParticipantType {
-  single
-  group
+  type: Float!
 }
 
 type ConversationEntity implements DefaultEntity {
@@ -76,6 +70,12 @@ type ConversationEntity implements DefaultEntity {
   senderId: String
   participants: [UserEntity!]!
   type: ParticipantType!
+}
+
+"""The participant type"""
+enum ParticipantType {
+  single
+  group
 }
 
 type Query {

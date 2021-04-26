@@ -76,7 +76,7 @@ export class ConversationService {
   //   return this.participantRepo.find({conversationId});
   // }
 
-  async createConversation(creatorId: string, participantMembers: string[], type: ParticipantType, title = '') {
+  async createConversation(creatorId: string, participantMembers: string[], type, title = '') {
     if (type === ParticipantType.single) {
       const conversationParticipant = await this.participantRepo.findOne({
         where: {
@@ -89,8 +89,10 @@ export class ConversationService {
       console.log(conversationParticipant);
       return '';
     }
-    const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId}));
-    const participant = await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: participantMembers, type}));
+    console.log(type);
+    
+    const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId, type}));
+    const participant = await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: [...participantMembers, creatorId], type}));
     return conversation;
   }
 

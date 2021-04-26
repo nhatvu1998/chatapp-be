@@ -31,7 +31,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     conversations.map(conversation => {
       socket.join(conversation._id);
     })
-    this.logger.log(`Client connected: ${user.userId}`);
+    this.logger.log(`Client connected`);
   }
 
   async handleDisconnect(socket) {
@@ -40,7 +40,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     conversations.map(conversation => {
       socket.leave(conversation._id);
     })
-    this.logger.log(`Client disconnected: ${user.userId}`);
+    this.logger.log(`Client disconnected:`);
   }
 
   @SubscribeMessage('join room')

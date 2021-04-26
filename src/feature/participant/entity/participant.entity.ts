@@ -26,10 +26,10 @@ export class ParticipantEntity extends DefaultEntity {
   @Column()
   userId: string[];
 
-  @Field(type => ParticipantType)
+  @Field(type => Number)
   @Expose()
   @Column()
-  type: ParticipantType;
+  type: number;
 
   constructor(participant: Partial<ParticipantEntity>) {
     super();
