@@ -69,7 +69,6 @@ export class ConversationService {
         $sort: { updatedAt: -1 },
       },
     ]).toArray();
-    console.log(conversations)
     return conversations;
   }
 
@@ -77,24 +76,31 @@ export class ConversationService {
   //   return this.participantRepo.find({conversationId});
   // }
 
-  async createConversation(creatorId: string, participantMembers: string[], type, title = '') {
+  async createConversation(creatorId: string, participantMembers: string[], type: ParticipantType, title = '') {
     if (type === ParticipantType.single) {
+      console.log(participantMembers);
+      console.log(type);
+      
+      
       const conversationParticipant = await this.participantRepo.findOne({
         where: {
-          userId: participantMembers
-        }
-      })
+          userId: [...participantMembers, creatorId],
+          type: ParticipantType.single,
+        },
+      });
+      console.log(conversationParticipant);
+      
       if (conversationParticipant) {
+         console.log({conversationParticipant});
         return this.conversationRepo.findOne({_id: conversationParticipant.conversationId});
       }
-      console.log(conversationParticipant);
-      return '';
+      // console.log(conversationParticipant);
     }
-    console.log(type);
+    const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId}));
+    console.log(conversation);
     
-    const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId, type}));
-    const participant = await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: [...participantMembers, creatorId], type}));
-    return conversation;
+    await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: [...participantMembers, creatorId], type}));
+    return conversation
   }
 
   async deleteConversation(conversationId: string) {

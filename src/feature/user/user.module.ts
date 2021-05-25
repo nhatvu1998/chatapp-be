@@ -6,9 +6,10 @@ import { MessageModule } from '../message/message.module';
 import { MessageService } from '../message/message.service';
 import { EventsModule } from '../events/events.module';
 import { ConversationModule } from '../conversation/conversation.module';
+import { RedisCacheModule } from '../cache/redisCache.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity]), RedisCacheModule],
   providers: [UserService],
   exports: [UserService],
 })

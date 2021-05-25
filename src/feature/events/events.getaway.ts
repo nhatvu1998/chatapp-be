@@ -28,6 +28,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(socket) {
     const user = await this.userService.decodeToken(socket.handshake.query.token)
     const conversations = (await this.conversationService.getManyConversation(user.userId));
+    
     conversations.map(conversation => {
       socket.join(conversation._id);
     })
@@ -96,5 +97,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   iceCandidate(@MessageBody() incoming: any, @ConnectedSocket() client: Socket): Promise<unknown> {
     client.to(incoming.target).emit('ice-candidate', incoming.candidate)
     return incoming;
+  }
+
+  @SubscribeMessage('end-call')
+  endCall(@MessageBody() payload: any, @ConnectedSocket() client: Socket): Promise<unknown> {
+    console.log(payload)
+    client.to(payload.target).emit('end-call', payload);
+    return payload;
   }
 }

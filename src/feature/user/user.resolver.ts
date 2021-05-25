@@ -19,29 +19,37 @@ export interface FileUpload {
 export class UsersResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query(returns => UserEntity)
+  @Query((returns) => UserEntity)
   async getUser(@Args('id') id: string) {
     return this.userService.findOne(id);
   }
 
-  @Query(returns => [UserEntity])
-  async getUsers() {
-    return this.userService.getUsers();
+  @Query((returns) => [UserEntity])
+  async getUsers(@Context('user') user: any) {
+    return this.userService.getUsers(user.userId);
   }
 
-  @Query(returns => UserEntity)
+  @Query((returns) => UserEntity)
   async getProfile(@Context('user') user: any) {
     return this.userService.findOne(user.userId);
   }
 
-  @Mutation(returns => MessageEntity)
-  async updateUser(@Args({name: 'avatarFile', type: () => GraphQLUpload!}) avatarFile: FileUpload, @Args('userData') userData: UpdateUserInput) {
-    return await this.userService.updateUser(userData._id, {
-      username: userData.username,
-      fullname: userData.fullname,
-      phone: userData.phone,
-      gender: userData.gender,
-      isOnline: userData.isOnline,
-    }, avatarFile);
+  @Mutation((returns) => MessageEntity)
+  async updateUser(
+    @Args({ name: 'avatarFile', type: () => GraphQLUpload! })
+    avatarFile: FileUpload,
+    @Args('userData') userData: UpdateUserInput,
+  ) {
+    return await this.userService.updateUser(
+      userData._id,
+      {
+        username: userData.username,
+        fullname: userData.fullname,
+        phone: userData.phone,
+        gender: userData.gender,
+        isOnline: userData.isOnline,
+      },
+      avatarFile,
+    );
   }
 }

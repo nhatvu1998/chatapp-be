@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, CacheModule, CacheInterceptor } from '@nestjs/common';
 import { AuthModule } from './feature/auth/auth.module';
 import { UserModule } from './feature/user/user.module';
 import { GqlConfigService } from './share/module/config/graphql';
@@ -13,6 +13,8 @@ import { ConversationModule } from './feature/conversation/conversation.module';
 import { ParticipantModule } from './feature/participant/participant.module';
 import { RoleGuard } from './feature/auth/guard/role.guard';
 import { EventsModule } from './feature/events/events.module';
+import { CacheConfigService } from './share/module/config/caching';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -24,6 +26,10 @@ import { EventsModule } from './feature/events/events.module';
       imports: [UserModule, ConversationModule],
       useClass: GqlConfigService,
     }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useClass: CacheConfigService,
+    }),
     AuthModule,
     UserModule,
     MessageModule,
@@ -31,6 +37,10 @@ import { EventsModule } from './feature/events/events.module';
     ParticipantModule,
     EventsModule,
   ],
-  providers: [UsersResolver, JwtStrategy, RoleGuard],
+  providers: [
+    UsersResolver,
+    JwtStrategy,
+    RoleGuard,
+  ],
 })
 export class AppModule {}

@@ -9,6 +9,7 @@ import { genSalt, hash } from 'bcrypt';
 import { RegisterInput } from '../auth/inputs/register.input';
 import { join } from 'path';
 import { Storage } from '@google-cloud/storage';
+import { RedisCacheService } from '../cache/redisCache.service';
 const serviceKey = join(__dirname, '../../../keys.json')
 
 const storage = new Storage({
@@ -24,6 +25,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    private readonly redisCacheService: RedisCacheService,
   ) {}
 
   async getUserByIdOrFail(id: string) {
@@ -35,15 +37,17 @@ export class UserService {
   }
 
   async findOne(userId: string) {
-    return this.userRepo.findOne({_id: userId});
+    const user = await this.userRepo.findOne({ _id: userId });
+    await this.redisCacheService.set(userId, user);
+    return user;
   }
 
   async findOneByName(username: string) {
-    return this.userRepo.findOne({username});
+    return this.userRepo.findOne({ username });
   }
 
-  async getUsers() {
-    return this.userRepo.find({});
+  async getUsers(userId) {
+    return this.userRepo.find({ where: { _id: { $not: { $in: [userId] } } } });
   }
 
   async decodeToken(token: string): Promise<any> {
@@ -53,7 +57,9 @@ export class UserService {
   }
 
   async createUser(userData: RegisterInput) {
-    const existedUser = await this.userRepo.findOne({ username: userData.username });
+    const existedUser = await this.userRepo.findOne({
+      username: userData.username,
+    });
     if (existedUser) {
       throw new BadRequestException('username already existed');
     }
@@ -74,14 +80,19 @@ export class UserService {
     return this.userRepo.save(user);
   }
 
-  async updateUser(id, userInfo: Pick<UserEntity, 'email' | 'username' | 'fullname' | 'phone' | 'gender' | 'isOnline' >, avatarFile) {
+  async updateUser(
+    id,
+    userInfo: Pick<
+      UserEntity,
+      'email' | 'username' | 'fullname' | 'phone' | 'gender' | 'isOnline'
+    >,
+    avatarFile,
+  ) {
     const { createReadStream, filename, mimetype, encoding } = await avatarFile;
     const user = await this.userRepo.findOne({ _id: id });
     if (!user) {
       throw new BadRequestException('user not found');
     }
-
-
 
     user.email = userInfo.email ?? user.email;
     user.username = userInfo.username ?? user.username;
@@ -90,26 +101,28 @@ export class UserService {
     user.gender = userInfo.gender ?? user.gender;
     user.isOnline = userInfo.isOnline ?? user.isOnline;
     console.log(filename);
-      await new Promise(res =>
-        createReadStream()
-          .pipe(
-            fileBucket.file(filename).createWriteStream({
-              resumable: false,
-              gzip: true
-            })
-          )
-          .on('finish', async () => {
-            const uploadResult = (await fileBucket.file(filename).getMetadata())[0];
-            const fileInfo = {
-              key: uploadResult.id,
-              name: uploadResult.name,
-              url: `https://storage.googleapis.com/${uploadResult.bucket}/${uploadResult.name}`,
-            };
-            // tslint:disable-next-line:no-unused-expression
-            user.avatarFile = fileInfo;
-            return this.userRepo.save(user);
-          })
-          .on('error', err => console.log(err))
-      )
+    await new Promise((res) =>
+      createReadStream()
+        .pipe(
+          fileBucket.file(filename).createWriteStream({
+            resumable: false,
+            gzip: true,
+          }),
+        )
+        .on('finish', async () => {
+          const uploadResult = (
+            await fileBucket.file(filename).getMetadata()
+          )[0];
+          const fileInfo = {
+            key: uploadResult.id,
+            name: uploadResult.name,
+            url: `https://storage.googleapis.com/${uploadResult.bucket}/${uploadResult.name}`,
+          };
+          // tslint:disable-next-line:no-unused-expression
+          user.avatarFile = fileInfo;
+          return this.userRepo.save(user);
+        })
+        .on('error', (err) => console.log(err)),
+    );
   }
 }

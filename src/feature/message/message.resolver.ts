@@ -46,6 +46,7 @@ export class MessageResolver {
   @Mutation(returns => MessageEntity)
   async newMessage(@Args('messageInput') messageInput: MessageInput, client: Socket) {
     const message = await this.messageService.addMessage(messageInput.conversationId, messageInput.senderId, messageInput.type, messageInput.message);
+    console.log(message)
     this.eventGateway.server.in(message.conversationId).emit('newMessage', message)
     return message;
   }

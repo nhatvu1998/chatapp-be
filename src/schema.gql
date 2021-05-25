@@ -68,14 +68,7 @@ type ConversationEntity implements DefaultEntity {
   creatorId: String!
   firstMessage: MessageEntity
   senderId: String
-  participants: [UserEntity!]!
-  type: ParticipantType!
-}
-
-"""The participant type"""
-enum ParticipantType {
-  single
-  group
+  participants: ParticipantEntity!
 }
 
 type Query {
@@ -159,4 +152,10 @@ input ParticipantInput {
   conversationId: String!
   userId: [String!]!
   type: ParticipantType!
+}
+
+"""The participant type"""
+enum ParticipantType {
+  single
+  group
 }

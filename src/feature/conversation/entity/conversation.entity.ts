@@ -3,7 +3,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { DefaultEntity } from '../../../share/interface/default.entity';
 import { Expose, plainToClass } from 'class-transformer';
 import { MessageEntity } from '../../message/entity/message.entity';
-import { ParticipantType } from '../../participant/entity/participant.entity';
+import { ParticipantEntity, ParticipantType } from '../../participant/entity/participant.entity';
 import { UserEntity } from '../../user/entity/user.entity';
 
 @ObjectType({implements: DefaultEntity })
@@ -29,14 +29,14 @@ export class ConversationEntity extends DefaultEntity {
   @Column()
   senderId: string;
 
-  @Field(type => [UserEntity])
+  @Field(type => ParticipantEntity)
   @Expose()
   @Column()
-  participants: UserEntity[];
+  participants: ParticipantEntity;
 
-  @Field(type => ParticipantType)
-  @Column()
-  type: ParticipantType;
+  // @Field(type => ParticipantType)
+  // @Column()
+  // type: ParticipantType;
 
   constructor(conversation: Partial<ConversationEntity>) {
     super();

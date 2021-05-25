@@ -10,6 +10,12 @@ export class ParticipantService {
     @InjectRepository(ParticipantEntity)
     private readonly participantRepo: Repository<ParticipantEntity>
   ) {}
+  
+  async getParticipant(conversationId: string) {
+    console.log(conversationId);
+    
+    return this.participantRepo.findOne({ conversationId })
+  }
 
   async addParticipant(conversationId: string, type: number, userId: string[]) {
     const participant = new ParticipantEntity({conversationId, type, userId});
