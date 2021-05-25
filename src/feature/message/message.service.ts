@@ -8,6 +8,7 @@ import { Storage } from '@google-cloud/storage';
 import { EventsGateway } from '../events/events.getaway';
 import { ConfigService } from '../../share/module/config/config.service';
 const serviceKey = join(__dirname, '../../../keys.json')
+import AWS from 'aws-sdk';
 
 @Injectable()
 export class MessageService {
@@ -21,13 +22,18 @@ export class MessageService {
   ) {}
 
   getFileBucket() {
-    const storage = new Storage({
-      keyFilename: serviceKey,
-      projectId: this.configService.get('GCLOUD_PROJECT_ID'),
-    })
-    const bucketName = this.configService.get('BUCKET_NAME');
-    const fileBucket = storage.bucket(bucketName)
-    return fileBucket
+    // const storage = new Storage({
+    //   keyFilename: serviceKey,
+    //   projectId: this.configService.get('GCLOUD_PROJECT_ID'),
+    // })
+    // const bucketName = this.configService.get('BUCKET_NAME');
+    // const fileBucket = storage.bucket(bucketName)
+    // return fileBucket
+    // let s3bucket = new AWS.S3({
+    //   accessKeyId: meisai.config.aws_access_key_id,
+    //   secretAccessKey: meisai.config.aws_secret_access_key,
+    //   region: meisai.config.aws_region,
+    // })
   }
 
   async findMessage(conversationId: string, page= 1, limit= 20) {
@@ -106,26 +112,26 @@ export class MessageService {
         break
     }
     console.log(filetype);
-      await new Promise(res =>
-          createReadStream()
-            .pipe(
-              this.getFileBucket().file(filename).createWriteStream({
-                resumable: false,
-                gzip: true
-              })
-            )
-            .on('finish', async () => {
-              const uploadResult = (await this.getFileBucket().file(filename).getMetadata())[0];
-              const fileInfo = {
-                key: uploadResult.id,
-                name: uploadResult.name,
-                url: `https://storage.googleapis.com/${uploadResult.bucket}/${uploadResult.name}`,
-              };
-              const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type: filetype, message, files: fileInfo}))
-              this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
-            })
-            .on('error', err => console.log(err))
-      )
+      // await new Promise(res =>
+      //     createReadStream()
+      //       .pipe(
+      //         this.getFileBucket().file(filename).createWriteStream({
+      //           resumable: false,
+      //           gzip: true
+      //         })
+      //       )
+      //       .on('finish', async () => {
+      //         const uploadResult = (await this.getFileBucket().file(filename).getMetadata())[0];
+      //         const fileInfo = {
+      //           key: uploadResult.id,
+      //           name: uploadResult.name,
+      //           url: `https://storage.googleapis.com/${uploadResult.bucket}/${uploadResult.name}`,
+      //         };
+      //         const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type: filetype, message, files: fileInfo}))
+      //         this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
+      //       })
+      //       .on('error', err => console.log(err))
+      // )
   }
 
   async getPhotos(conversationId: string, page= 1, limit= 20) {

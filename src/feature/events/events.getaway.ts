@@ -75,7 +75,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async callSignal(@MessageBody() payload: any, @ConnectedSocket() client: Socket): Promise<unknown> {
     console.log(payload);
     const user = await this.userService.decodeToken(client.handshake.query.token)
-    client.to(payload.roomId).emit('peerId', {peerId: payload.peerId, userId: user.userId})
+    client.in(payload.roomId).emit('peerId', {peerId: payload.peerId, userId: user.userId})
+    // client.to(payload.roomId).emit('peerId', {peerId: payload.peerId, userId: user.userId})
     return payload;
   }
 

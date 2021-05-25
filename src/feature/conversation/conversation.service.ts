@@ -69,6 +69,7 @@ export class ConversationService {
         $sort: { updatedAt: -1 },
       },
     ]).toArray();
+    console.log(conversations)
     return conversations;
   }
 
@@ -101,6 +102,7 @@ export class ConversationService {
     if (!conversation) {
       throw new BadRequestException('Conversation not found!');
     }
+    await this.participantRepo.delete({ conversationId });
     return !!(await this.conversationRepo.remove(conversation));
   }
 
