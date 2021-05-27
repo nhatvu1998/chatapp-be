@@ -15,6 +15,6 @@ export class ConversationInput {
   @Field(type => [String])
   participantMembers: string[];
 
-  @Field()
+  @Field(type => ParticipantType)
   type: ParticipantType;
 }

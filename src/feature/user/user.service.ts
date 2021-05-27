@@ -37,9 +37,14 @@ export class UserService {
   }
 
   async findOne(userId: string) {
-    const user = await this.userRepo.findOne({ _id: userId });
-    await this.redisCacheService.set(userId, user);
-    return user;
+    const userCache = await this.redisCacheService.get(`user::${userId}`);
+    if (userCache) {
+      return userCache;
+    } else {
+      const user = await this.userRepo.findOne({ _id: userId });
+      await this.redisCacheService.set(`user::${userId}`, user);
+      return user;
+    }
   }
 
   async findOneByName(username: string) {

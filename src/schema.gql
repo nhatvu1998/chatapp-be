@@ -152,7 +152,7 @@ input ConversationInput {
   title: String
   creatorId: String!
   participantMembers: [String!]!
-  type: Float!
+  type: ParticipantType!
 }
 
 input ParticipantInput {

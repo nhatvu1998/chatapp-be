@@ -69,7 +69,7 @@ export class ConversationService {
         $sort: { updatedAt: -1 },
       },
     ]).toArray();
-      console.log(conversations);
+    console.log(conversations)
     return conversations;
   }
   
@@ -80,27 +80,20 @@ export class ConversationService {
 
   async createConversation(creatorId: string, participantMembers: string[], type: ParticipantType, title = '') {
     if (type === ParticipantType.single) {
-      console.log(participantMembers);
-      console.log(type);
-      
-      
       const conversationParticipant = await this.participantRepo.findOne({
         where: {
           userId: [...participantMembers, creatorId],
           type: ParticipantType.single,
         },
       });
-      console.log(conversationParticipant);
       
       if (conversationParticipant) {
-         console.log({conversationParticipant});
-        return this.conversationRepo.findOne({_id: conversationParticipant.conversationId});
+        const conversation = await this.conversationRepo.findOne({_id: conversationParticipant.conversationId});
+        return conversation
       }
       // console.log(conversationParticipant);
     }
     const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId}));
-    console.log(conversation);
-    
     await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: [...participantMembers, creatorId], type}));
     return conversation
   }
