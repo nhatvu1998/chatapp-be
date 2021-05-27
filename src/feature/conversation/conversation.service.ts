@@ -69,8 +69,10 @@ export class ConversationService {
         $sort: { updatedAt: -1 },
       },
     ]).toArray();
+      console.log(conversations);
     return conversations;
   }
+  
 
   // async getParticipant(conversationId: string) {
   //   return this.participantRepo.find({conversationId});

@@ -34,9 +34,9 @@ export class ConversationResolver {
     return this.conversationService.deleteConversation(conversationId);
   }
 
-  @ResolveField()
-  async participants(@Parent() conversation: ConversationEntity) {
-    const { _id } = conversation;
-    return this.participantService.getParticipant(_id);
-  }
+  // @ResolveField()
+  // async participants(@Parent() conversation: ConversationEntity) {
+  //   const { _id } = conversation;
+  //   return this.participantService.getParticipant(_id);
+  // }
 }

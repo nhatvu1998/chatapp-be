@@ -29,14 +29,14 @@ export class ConversationEntity extends DefaultEntity {
   @Column()
   senderId: string;
 
-  @Field(type => ParticipantEntity)
+  @Field(type => [UserEntity])
   @Expose()
   @Column()
-  participants: ParticipantEntity;
+  participants: UserEntity[];
 
-  // @Field(type => ParticipantType)
-  // @Column()
-  // type: ParticipantType;
+  @Field(type => ParticipantType)
+  @Column()
+  type: ParticipantType;
 
   constructor(conversation: Partial<ConversationEntity>) {
     super();
