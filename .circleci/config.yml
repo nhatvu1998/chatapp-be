@@ -1,0 +1,26 @@
+version: 2.1
+orbs:
+  node: circleci/node@4.1.0
+  heroku: circleci/heroku@1.2.5
+
+jobs:
+  heroku_deploy:
+    docker:
+      - image: circleci/node:15.5.1
+        environment:
+          NODE_ENV: production
+    steps:
+      - checkout
+      - heroku/install
+      - node/install-packages:
+          pkg-manager: yarn
+      - heroku/deploy-via-git:
+          force: true
+
+workflows:
+  test_then_deploy:
+    jobs:
+      - heroku_deploy:
+          filters:
+            branches:
+              only: main

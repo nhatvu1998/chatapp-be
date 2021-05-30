@@ -20,7 +20,8 @@ export class ConversationResolver {
   async createConversation(
     @Args('conversationInput') conversationInput: ConversationInput,
   ) {
-
+    console.log({conversationInput});
+    
     return this.conversationService.createConversation(
       conversationInput.creatorId,
       conversationInput.participantMembers,

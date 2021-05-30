@@ -25,47 +25,77 @@ export class MessageResolver {
     private readonly messageService: MessageService,
     private readonly conversationService: ConversationService,
     private readonly eventGateway: EventsGateway,
-  ) {
-  }
+  ) {}
 
-  @Query(returns => [MessageEntity])
+  @Query((returns) => [MessageEntity])
   async findAllMessage(@Args('messageQuery') messageQuery: MessageQuery) {
-    return this.messageService.findMessage(messageQuery.conversationId, messageQuery.page, messageQuery.limit);
+    return this.messageService.findMessage(
+      messageQuery.conversationId,
+      messageQuery.page,
+      messageQuery.limit,
+    );
   }
 
-  @Query(returns => [MessageEntity])
+  @Query((returns) => [MessageEntity])
   async getPhotos(@Args('messageQuery') messageQuery: MessageQuery) {
     return this.messageService.getPhotos(messageQuery.conversationId);
   }
 
-  @Query(returns => [MessageEntity])
+  @Query((returns) => [MessageEntity])
   async searchMessage(@Args('messageQuery') messageQuery: MessageQuery) {
-    return this.messageService.searchMessage(messageQuery.conversationId, messageQuery.searchText);
+    return this.messageService.searchMessage(
+      messageQuery.conversationId,
+      messageQuery.searchText,
+    );
   }
 
-  @Mutation(returns => MessageEntity)
-  async newMessage(@Args('messageInput') messageInput: MessageInput, client: Socket) {
-    const message = await this.messageService.addMessage(messageInput.conversationId, messageInput.senderId, messageInput.type, messageInput.message);
-    console.log(message)
-    this.eventGateway.server.in(message.conversationId).emit('newMessage', message)
+  @Query((returns) => [MessageEntity])
+  async searchRecentMessage(@Args('messageId') messageId: string) {
+    return this.messageService.searchRecentMessage(messageId);
+  }
+
+  @Mutation((returns) => MessageEntity)
+  async newMessage(
+    @Args('messageInput') messageInput: MessageInput,
+    client: Socket,
+  ) {
+    const message = await this.messageService.addMessage(
+      messageInput.conversationId,
+      messageInput.senderId,
+      messageInput.type,
+      messageInput.message,
+    );
+    console.log(message);
+    this.eventGateway.server
+      .in(message.conversationId)
+      .emit('newMessage', message);
     return message;
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation((returns) => Boolean)
   async removeMessage(@Args('messageId') messageId: string) {
     return this.messageService.removeMessage(messageId);
   }
 
-  @Mutation(returns => MessageEntity)
-  async uploadFile(@Args({name: 'file', type: () => GraphQLUpload!}) file: FileUpload, @Args('fileInfo') fileInfo: FileInfo) {
-    const result = await this.messageService.uploadFile(file, fileInfo.conversationId, fileInfo.senderId, fileInfo.type) as unknown as MessageEntity;
-    this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
+  @Mutation((returns) => MessageEntity)
+  async uploadFile(
+    @Args({ name: 'file', type: () => GraphQLUpload! }) file: FileUpload,
+    @Args('fileInfo') fileInfo: FileInfo,
+  ) {
+    const result = ((await this.messageService.uploadFile(
+      file,
+      fileInfo.conversationId,
+      fileInfo.senderId,
+      fileInfo.type,
+    )) as unknown) as MessageEntity;
+    this.eventGateway.server
+      .in(result.conversationId)
+      .emit('newMessage', result);
     return result;
   }
 
-  @Mutation(returns => Boolean)
+  @Mutation((returns) => Boolean)
   async deleteMessage(@Args('messageid') messageId: string) {
     return this.messageService.deleteMessage(messageId);
   }
-
 }

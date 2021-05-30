@@ -1,5 +1,6 @@
 import {
   BeforeInsert,
+  Column,
   CreateDateColumn,
   ObjectIdColumn,
   UpdateDateColumn,
@@ -16,19 +17,19 @@ export abstract class DefaultEntity {
   _id: string;
 
   @Field()
-  @Exclude()
-  @CreateDateColumn()
-  createdAt: Date;
+  @Expose()
+  @Column()
+  createdAt: number;
 
   @Field()
-  @Exclude()
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Expose()
+  @Column()
+  updatedAt: number;
 
   @BeforeInsert()
   async addId() {
     this._id = uuid();
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.createdAt = +new Date();
+    this.updatedAt = +new Date();
   }
 }

@@ -18,7 +18,7 @@ export class TypeormConfigService implements TypeOrmOptionsFactory {
     return {
       type: 'mongodb',
       url: `mongodb+srv://${username}:${password}@${host}/${database}`,
-      entities: getMetadataArgsStorage().tables.map(tbl => tbl.target),
+      entities: getMetadataArgsStorage().tables.map((tbl) => tbl.target),
       useNewUrlParser: true,
       useUnifiedTopology: true,
     };

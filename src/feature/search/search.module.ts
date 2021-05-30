@@ -9,6 +9,7 @@ import { SearchService } from './search.service';
         ElasticsearchModule.registerAsync({
         imports: [ConfigModule],
         useClass: ElasticsearchConfigService
+        })
     ],
     providers: [SearchService],
     exports: [ElasticsearchModule, SearchService],

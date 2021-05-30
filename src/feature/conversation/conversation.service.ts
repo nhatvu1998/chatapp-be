@@ -94,6 +94,8 @@ export class ConversationService {
       // console.log(conversationParticipant);
     }
     const conversation = await this.conversationRepo.save(new ConversationEntity({title, creatorId}));
+    console.log(conversation);
+    
     await this.participantRepo.save(new ParticipantEntity({conversationId: conversation._id, userId: [...participantMembers, creatorId], type}));
     return conversation
   }

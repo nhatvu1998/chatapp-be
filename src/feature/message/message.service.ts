@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MessageEntity, MessageType } from './entity/message.entity';
-import { MongoRepository } from 'typeorm';
+import { MongoRepository, LessThan } from 'typeorm';
 import { ConversationEntity } from '../conversation/entity/conversation.entity';
 import { join } from 'path';
 import { Storage } from '@google-cloud/storage';
@@ -37,7 +37,7 @@ export class MessageService {
   }
 
   async findMessage(conversationId: string, page= 1, limit= 20) {
-    return this.messageRepo.find({
+    const message = await this.messageRepo.find({
       where: {
         conversationId,
         isDeleted: { $nin: [ true ] },
@@ -46,6 +46,8 @@ export class MessageService {
       take: limit,
       skip: limit * (page - 1),
     });
+    console.log({message});
+    return message
   }
 
   async addMessage(conversationId: string, senderId: string, type: MessageType, message: string) {
@@ -79,7 +81,7 @@ export class MessageService {
     if (!conversation.participants.userId.includes(senderId)) {
       throw new UnauthorizedException('You cannot send message in this conversation!');
     }
-    conversation.updatedAt = new Date();
+    conversation.updatedAt = +new Date();
     await this.convesationRepo.save(conversation);
     return await this.messageRepo.save(new MessageEntity({ conversationId, senderId, type, message }));
   }
@@ -154,6 +156,36 @@ export class MessageService {
       },
       order: {createdAt: -1},
     });
+  }
+
+  async searchRecentMessage(messageId: string, limit = 10) {
+    const message = await this.messageRepo.findOne({ _id: messageId });
+    console.log(message);
+    if (!message) {
+      throw new NotFoundException('Message not Found!')
+    }
+    const a = await this.messageRepo.find({
+      where: {
+        $or: [
+          { createdAt: { $lt: message.createdAt } },
+          { createdAt: { $gte: message.createdAt } },
+        ],
+      },
+      take: limit * 2,
+      order: { createdAt: -1 },
+    });
+    console.log(a);
+    
+    // const a = await this.messageRepo.aggregate([
+
+    // ])
+    return a;
+    // return this.messageRepo.find({
+    //   where: {
+    //     _id: messageId,
+    //   },
+    //   order: {createdAt: -1},
+    // });
   }
 
   async deleteMessage(messageId:string) {
