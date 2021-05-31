@@ -3,7 +3,7 @@
 /node_modules
 
 local.env
-keys.json
+# keys.json
 # Logs
 logs
 *.log
