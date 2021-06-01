@@ -73,8 +73,13 @@ export class MessageResolver {
   }
 
   @Mutation((returns) => Boolean)
-  async removeMessage(@Args('messageId') messageId: string) {
-    return this.messageService.removeMessage(messageId);
+  async removeMessage(@Args('messageId') messageId: string, @Args('conversationId') conversationId: string) {
+    const message = await this.messageService.removeMessage(messageId);
+    if (message) {
+      this.eventGateway.server.in(conversationId).emit('removeMessage', messageId);
+      return message
+    }
+    return false;
   }
 
   @Mutation((returns) => MessageEntity)

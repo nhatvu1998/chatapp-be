@@ -97,7 +97,7 @@ type Mutation {
   logout(id: String!): Boolean!
   updateUser(userData: UpdateUserInput!, avatarFile: Upload!): MessageEntity!
   newMessage(messageInput: MessageInput!): MessageEntity!
-  removeMessage(messageId: String!): Boolean!
+  removeMessage(conversationId: String!, messageId: String!): Boolean!
   uploadFile(fileInfo: FileInfo!, file: Upload!): MessageEntity!
   deleteMessage(messageid: String!): Boolean!
   createConversation(conversationInput: ConversationInput!): ConversationEntity!

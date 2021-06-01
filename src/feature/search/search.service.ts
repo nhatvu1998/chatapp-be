@@ -39,9 +39,9 @@ export class SearchService {
         }
     }
     public async indexMessage(message: any) {
-        return await this.elasticsearchService.index({
-            index: this.configService.get('ELASTICSEARCH_INDEX')!,
-            body: message,
+        return this.elasticsearchService.index({
+          index: this.configService.get('ELASTICSEARCH_INDEX')!,
+          body: message,
         });
     }
 
