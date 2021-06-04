@@ -8,8 +8,6 @@ import { Storage } from '@google-cloud/storage';
 import { EventsGateway } from '../events/events.getaway';
 import { ConfigService } from '../../share/module/config/config.service';
 const serviceKey = join(__dirname, '../../../keys.json')
-import AWS from 'aws-sdk';
-import {SearchService} from '../search/search.service';
 
 @Injectable()
 export class MessageService {
@@ -19,7 +17,6 @@ export class MessageService {
     @InjectRepository(ConversationEntity)
     private readonly convesationRepo: MongoRepository<ConversationEntity>,
     private readonly eventGateway: EventsGateway,
-    private readonly searchService : SearchService,
     private configService: ConfigService,
   ) {}
 
@@ -85,9 +82,7 @@ export class MessageService {
     }
     conversation.updatedAt = +new Date();
     await this.convesationRepo.save(conversation);
-    const newMessage = await this.messageRepo.save(new MessageEntity({ conversationId, senderId, type, message }));
-    this.searchService.indexMessage(newMessage);
-    return newMessage;
+    return this.messageRepo.save(new MessageEntity({ conversationId, senderId, type, message }));
   }
 
   async removeMessage(messageId: string) {

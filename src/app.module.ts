@@ -14,8 +14,6 @@ import { ParticipantModule } from './feature/participant/participant.module';
 import { RoleGuard } from './feature/auth/guard/role.guard';
 import { EventsModule } from './feature/events/events.module';
 import { CacheConfigService } from './share/module/config/caching';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { SearchModule } from './feature/search/search.module';
 
 @Module({
   imports: [
@@ -37,7 +35,6 @@ import { SearchModule } from './feature/search/search.module';
     ConversationModule,
     ParticipantModule,
     EventsModule,
-    SearchModule
   ],
   providers: [
     UsersResolver,

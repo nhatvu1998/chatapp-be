@@ -1,11 +1,29 @@
 version: "3.8"
 services:
-  app:
-    image: chatapp-be
-    build:
-      dockerfile: Dockerfile
-      context: .
-    ports:
-    - "4000:4000"
-    restart: on-failure
-    container_name: chatapp-be
+    redis-server:
+        image: redis
+        container_name: cache
+        ports:
+            - 6379:6379
+        restart: unless-stopped
+    app:
+        links:
+            - redis-server
+        image: chatapp-be
+        build:
+            dockerfile: Dockerfile
+            context: .
+        ports:
+            - 4000:4000
+        volumes:
+            - ./:/app
+        environment:
+            - DB_HOST=${DB_HOST}
+            - DB_NAME=${DB_NAME}
+            - REDIS_HOST=${REDIS_HOST}
+            - REDIS_PORT=${REDIS_PORT}
+            - PORT=${PORT}
+        depends_on:
+            - redis-server
+        restart: on-failure
+        container_name: chatapp-be
