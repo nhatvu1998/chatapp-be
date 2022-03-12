@@ -17,12 +17,6 @@ services:
             - 4000:4000
         volumes:
             - ./:/app
-        environment:
-            - DB_HOST=${DB_HOST}
-            - DB_NAME=${DB_NAME}
-            - REDIS_HOST=${REDIS_HOST}
-            - REDIS_PORT=${REDIS_PORT}
-            - PORT=${PORT}
         depends_on:
             - redis-server
         restart: on-failure

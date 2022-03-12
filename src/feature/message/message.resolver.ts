@@ -29,6 +29,7 @@ export class MessageResolver {
 
   @Query((returns) => [MessageEntity])
   async findAllMessage(@Args('messageQuery') messageQuery: MessageQuery) {
+    console.log(messageQuery)
     return this.messageService.findMessage(
       messageQuery.conversationId,
       messageQuery.page,

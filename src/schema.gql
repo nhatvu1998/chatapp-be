@@ -77,11 +77,11 @@ type Query {
   getUser(id: String!): UserEntity!
   getUsers: [UserEntity!]!
   getProfile: UserEntity!
+  getManyConversation(userId: String!): [ConversationEntity!]!
   findAllMessage(messageQuery: MessageQuery!): [MessageEntity!]!
   getPhotos(messageQuery: MessageQuery!): [MessageEntity!]!
   searchMessage(messageQuery: MessageQuery!): [MessageEntity!]!
   searchRecentMessage(messageId: String!): [MessageEntity!]!
-  getManyConversation(userId: String!): [ConversationEntity!]!
 }
 
 input MessageQuery {
@@ -92,30 +92,17 @@ input MessageQuery {
 }
 
 type Mutation {
+  updateUser(userData: UpdateUserInput!, avatarFile: Upload!): MessageEntity!
+  createConversation(conversationInput: ConversationInput!): ConversationEntity!
+  deleteConversation(conversationId: String!): Boolean!
   register(userData: RegisterInput!): UserEntity!
   login(userData: LoginInput!): AccessToken!
   logout(id: String!): Boolean!
-  updateUser(userData: UpdateUserInput!, avatarFile: Upload!): MessageEntity!
   newMessage(messageInput: MessageInput!): MessageEntity!
   removeMessage(conversationId: String!, messageId: String!): Boolean!
   uploadFile(fileInfo: FileInfo!, file: Upload!): MessageEntity!
   deleteMessage(messageid: String!): Boolean!
-  createConversation(conversationInput: ConversationInput!): ConversationEntity!
-  deleteConversation(conversationId: String!): Boolean!
   addParticipant(participantInput: ParticipantInput!): ParticipantEntity!
-}
-
-input RegisterInput {
-  username: String!
-  password: String!
-  passwordCheck: String!
-  fullname: String!
-  email: String!
-}
-
-input LoginInput {
-  username: String!
-  password: String!
 }
 
 input UpdateUserInput {
@@ -131,6 +118,26 @@ input UpdateUserInput {
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
 
+input ConversationInput {
+  title: String
+  creatorId: String!
+  participantMembers: [String!]!
+  type: ParticipantType!
+}
+
+input RegisterInput {
+  username: String!
+  password: String!
+  passwordCheck: String!
+  fullname: String!
+  email: String!
+}
+
+input LoginInput {
+  username: String!
+  password: String!
+}
+
 input MessageInput {
   conversationId: String!
   senderId: String!
@@ -142,13 +149,6 @@ input FileInfo {
   conversationId: String!
   senderId: String!
   type: Float!
-}
-
-input ConversationInput {
-  title: String
-  creatorId: String!
-  participantMembers: [String!]!
-  type: ParticipantType!
 }
 
 input ParticipantInput {

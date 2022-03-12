@@ -7,6 +7,8 @@ import { join } from 'path';
 import { Storage } from '@google-cloud/storage';
 import { EventsGateway } from '../events/events.getaway';
 import { ConfigService } from '../../share/module/config/config.service';
+const OSS = require('ali-oss');
+
 const serviceKey = join(__dirname, '../../../keys.json')
 
 @Injectable()
@@ -21,12 +23,18 @@ export class MessageService {
   ) {}
 
   getFileBucket() {
-    const storage = new Storage({
-      keyFilename: serviceKey,
-      projectId: this.configService.get('GCLOUD_PROJECT_ID'),
-    })
-    const bucketName = this.configService.get('BUCKET_NAME');
-    const fileBucket = storage.bucket(bucketName)
+    // const storage = new Storage({
+    //   keyFilename: serviceKey,
+    //   projectId: this.configService.get('GCLOUD_PROJECT_ID'),
+    // })
+    // const bucketName = this.configService.get('BUCKET_NAME');
+    // const fileBucket = storage.bucket(bucketName)
+    const fileBucket = new OSS({
+      region: 'oss-ap-southeast-1',
+      accessKeyId: 'LTAI5tLTPn6fKNeLpv6q8mB1',
+      accessKeySecret: 'MK3rktUQdSV3otTZuVtjnsYipSPnJ2',
+      bucket: 'chatapp-be'
+    });
     return fileBucket
     // let s3bucket = new AWS.S3({
     //   accessKeyId: meisai.config.aws_access_key_id,
@@ -113,27 +121,36 @@ export class MessageService {
         break
     }
     console.log(filetype);
-      await new Promise(res =>
-          createReadStream()
-            .pipe(
-              this.getFileBucket().file(filename).createWriteStream({
-                resumable: false,
-                gzip: true
-              })
-            )
-            .on('finish', async () => {
-              const uploadResult = (await this.getFileBucket().file(filename).getMetadata())[0];
-              console.log(uploadResult)
-              const fileInfo = {
-                key: uploadResult.id,
-                name: uploadResult.name,
-                url: `https://storage.cloud.google.com/${uploadResult.bucket}/${uploadResult.name}?authuser=1`,
+      // await new Promise(res =>
+      //     createReadStream()
+      //       .pipe(
+      //         this.getFileBucket().file(filename).createWriteStream({
+      //           resumable: false,
+      //           gzip: true
+      //         })
+      //       )
+      //       .on('finish', async () => {
+      //         const uploadResult = (await this.getFileBucket().file(filename).getMetadata())[0];
+      //         console.log(uploadResult)
+      //         const fileInfo = {
+      //           key: uploadResult.id,
+      //           name: uploadResult.name,
+      //           url: `https://storage.cloud.google.com/${uploadResult.bucket}/${uploadResult.name}?authuser=1`,
+      //         };
+      //         const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type: filetype, message, files: fileInfo}))
+      //         this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
+      //       })
+      //       .on('error', err => console.log(err))
+      // )
+      this.getFileBucket().putStream(filename, createReadStream()).then(async(res) => {
+            const fileInfo = {
+                key: res.name,
+                name: res.name,
+                url: res.url,
               };
               const result = await this.messageRepo.save(new MessageEntity({conversationId, senderId, type: filetype, message, files: fileInfo}))
               this.eventGateway.server.in(result.conversationId).emit('newMessage', result)
-            })
-            .on('error', err => console.log(err))
-      )
+      })
   }
 
   async getPhotos(conversationId: string, page= 1, limit= 20) {

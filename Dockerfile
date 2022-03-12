@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:lts-stretch as builder
 
 WORKDIR /app
 
