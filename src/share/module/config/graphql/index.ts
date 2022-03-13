@@ -18,7 +18,6 @@ export class GqlConfigService implements GqlOptionsFactory {
     return {
       path: '/graphql',
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      playground: true,
       installSubscriptionHandlers: true,
       cors: {
         origin: '*',

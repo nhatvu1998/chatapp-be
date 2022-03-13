@@ -54,6 +54,6 @@ async function bootstrap() {
   app.useGlobalGuards(
     new RoleGuard(app.get(Reflector), app.get(UserService)),
   );
-  await app.listen(configService.get('PORT'));
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

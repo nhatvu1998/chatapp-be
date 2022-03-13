@@ -1,4 +1,4 @@
-FROM node:lts-stretch as builder
+FROM node:12.22.10-stretch
 
 WORKDIR /app
 
@@ -8,6 +8,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 4000
+EXPOSE 3000
 
 ENTRYPOINT ["npm", "start"]
