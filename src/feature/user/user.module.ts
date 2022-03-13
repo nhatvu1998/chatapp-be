@@ -9,7 +9,7 @@ import { ConversationModule } from '../conversation/conversation.module';
 import { RedisCacheModule } from '../cache/redisCache.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity]), RedisCacheModule],
+  imports: [TypeOrmModule.forFeature([UserEntity])],
   providers: [UserService],
   exports: [UserService],
 })

@@ -25,7 +25,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
-    private readonly redisCacheService: RedisCacheService,
+    // private readonly redisCacheService: RedisCacheService,
   ) {}
 
   async getUserByIdOrFail(id: string) {
@@ -37,14 +37,14 @@ export class UserService {
   }
 
   async findOne(userId: string) {
-    const userCache = await this.redisCacheService.get(`user::${userId}`);
-    if (userCache) {
-      return userCache;
-    } else {
+    // const userCache = await this.redisCacheService.get(`user::${userId}`);
+    // if (userCache) {
+    //   return userCache;
+    // } else {
       const user = await this.userRepo.findOne({ _id: userId });
-      await this.redisCacheService.set(`user::${userId}`, user);
+      // await this.redisCacheService.set(`user::${userId}`, user);
       return user;
-    }
+    // }
   }
 
   async findOneByName(username: string) {

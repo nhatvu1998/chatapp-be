@@ -25,10 +25,10 @@ import { CacheConfigService } from './share/module/config/caching';
       imports: [UserModule, ConversationModule],
       useClass: GqlConfigService,
     }),
-    CacheModule.registerAsync({
-      imports: [ConfigModule],
-      useClass: CacheConfigService,
-    }),
+    // CacheModule.registerAsync({
+    //   imports: [ConfigModule],
+    //   useClass: CacheConfigService,
+    // }),
     AuthModule,
     UserModule,
     MessageModule,
