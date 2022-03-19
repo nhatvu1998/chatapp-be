@@ -88,8 +88,9 @@ export class MessageService {
     if (!conversation.participants.userId.includes(senderId)) {
       throw new UnauthorizedException('You cannot send message in this conversation!');
     }
-    conversation.updatedAt = +new Date();
-    await this.convesationRepo.save(conversation);
+
+    await this.convesationRepo.update(conversation.id, {updatedAt: +new Date()});
+
     return this.messageRepo.save(new MessageEntity({ conversationId, senderId, type, message }));
   }
 

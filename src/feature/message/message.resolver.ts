@@ -66,7 +66,6 @@ export class MessageResolver {
       messageInput.type,
       messageInput.message,
     );
-    console.log(message);
     this.eventGateway.server
       .in(message.conversationId)
       .emit('newMessage', message);
